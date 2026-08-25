@@ -33,7 +33,6 @@ async function createVisit(req, res) {
 
     const visit = result.rows[0];
 
-    // Push live update to admin/reception dashboards
     const io = req.app.get('io');
     io.emit('visit_created', visit);
 
@@ -45,7 +44,6 @@ async function createVisit(req, res) {
 }
 
 // GET /api/reception/visits/opd
-// Live OPD dashboard — reception & admin
 async function getOpdDashboard(req, res) {
   try {
     const result = await db.query(
@@ -64,7 +62,6 @@ async function getOpdDashboard(req, res) {
 }
 
 // GET /api/reception/visits/inpatient
-// Live in-patient dashboard — reception & admin
 async function getInpatientDashboard(req, res) {
   try {
     const result = await db.query(
