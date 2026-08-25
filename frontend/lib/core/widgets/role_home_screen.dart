@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../features/auth/providers/auth_provider.dart';
+import '../../features/admin/screens/user_approvals_screen.dart';
 import '../theme/theme_toggle_button.dart';
 
 /// Temporary landing screen shown right after login, before role-specific
@@ -15,6 +16,7 @@ class RoleHomeScreen extends StatelessWidget {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.currentUser;
     final theme = Theme.of(context);
+    final isAdmin = user?.role == 'admin';
 
     return Scaffold(
       appBar: AppBar(
@@ -40,6 +42,18 @@ class RoleHomeScreen extends StatelessWidget {
               '${_roleLabel(user?.role ?? '')} dashboard coming next',
               style: theme.textTheme.bodyMedium,
             ),
+            if (isAdmin) ...[
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.how_to_reg_rounded),
+                label: const Text('Manage User Approvals'),
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const UserApprovalsScreen()));
+                },
+              ),
+            ],
           ],
         ),
       ),
