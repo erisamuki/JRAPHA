@@ -13,6 +13,10 @@ import 'features/nurse/screens/nurse_dashboard_screen.dart';
 import 'features/nurse/providers/nurse_provider.dart';
 import 'features/doctor/screens/doctor_dashboard_screen.dart';
 import 'features/doctor/providers/doctor_provider.dart';
+import 'features/laboratory/screens/lab_dashboard_screen.dart';
+import 'features/laboratory/providers/lab_provider.dart';
+import 'features/pharmacy/screens/pharmacy_dashboard_screen.dart';
+import 'features/pharmacy/providers/pharmacy_provider.dart';
 
 void main() {
   runApp(
@@ -23,6 +27,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => ReceptionProvider()),
         ChangeNotifierProvider(create: (_) => NurseProvider()),
         ChangeNotifierProvider(create: (_) => DoctorProvider()),
+        ChangeNotifierProvider(create: (_) => LabProvider()),
+        ChangeNotifierProvider(create: (_) => PharmacyProvider()),
       ],
       child: const JRaphaApp(),
     ),
@@ -67,6 +73,10 @@ class _AuthGate extends StatelessWidget {
         return const NurseDashboardScreen();
       case 'doctor':
         return const DoctorDashboardScreen();
+      case 'laboratory':
+        return const LabDashboardScreen();
+      case 'pharmacy':
+        return const PharmacyDashboardScreen();
       default:
         return const RoleHomeScreen();
     }
