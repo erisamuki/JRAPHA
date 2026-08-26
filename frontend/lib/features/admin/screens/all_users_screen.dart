@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/admin_provider.dart';
-import '../models/admin_user_model.dart';
 
 class AllUsersScreen extends StatefulWidget {
   const AllUsersScreen({super.key});

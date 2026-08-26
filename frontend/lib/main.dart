@@ -9,6 +9,8 @@ import 'features/auth/screens/login_screen.dart';
 import 'features/admin/screens/admin_dashboard_screen.dart';
 import 'features/reception/screens/reception_dashboard_screen.dart';
 import 'features/reception/providers/reception_provider.dart';
+import 'features/nurse/screens/nurse_dashboard_screen.dart';
+import 'features/nurse/providers/nurse_provider.dart';
 
 void main() {
   runApp(
@@ -17,6 +19,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ReceptionProvider()),
+        ChangeNotifierProvider(create: (_) => NurseProvider()),
       ],
       child: const JRaphaApp(),
     ),
@@ -57,6 +60,8 @@ class _AuthGate extends StatelessWidget {
         return const AdminDashboardScreen();
       case 'reception':
         return const ReceptionDashboardScreen();
+      case 'nurse':
+        return const NurseDashboardScreen();
       default:
         return const RoleHomeScreen();
     }

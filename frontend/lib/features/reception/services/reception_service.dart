@@ -22,12 +22,12 @@ class ReceptionService {
     final result = await _api.post('/reception/patients', {
       'full_name': fullName,
       if (dateOfBirth != null) 'date_of_birth': dateOfBirth.toIso8601String().split('T').first,
-      if (gender != null) 'gender': gender,
-      if (phone != null) 'phone': phone,
-      if (nin != null) 'nin': nin,
-      if (district != null) 'district': district,
-      if (nextOfKinName != null) 'next_of_kin_name': nextOfKinName,
-      if (nextOfKinPhone != null) 'next_of_kin_phone': nextOfKinPhone,
+      'gender': ?gender,
+      'phone': ?phone,
+      'nin': ?nin,
+      'district': ?district,
+      'next_of_kin_name': ?nextOfKinName,
+      'next_of_kin_phone': ?nextOfKinPhone,
     });
     return PatientModel.fromJson(result['patient'] as Map<String, dynamic>);
   }
@@ -50,8 +50,8 @@ class ReceptionService {
     final result = await _api.post('/reception/visits', {
       'patient_id': patientId,
       'visit_type': visitType,
-      if (ward != null) 'ward': ward,
-      if (bedNumber != null) 'bed_number': bedNumber,
+      'ward': ?ward,
+      'bed_number': ?bedNumber,
     });
     return VisitModel.fromJson(result['visit'] as Map<String, dynamic>, visitType: visitType);
   }
@@ -87,8 +87,8 @@ class ReceptionService {
     final result = await _api.post('/reception/appointments', {
       'patient_id': patientId,
       'scheduled_at': scheduledAt.toIso8601String(),
-      if (scheduledWith != null) 'scheduled_with': scheduledWith,
-      if (notes != null) 'notes': notes,
+      'scheduled_with': ?scheduledWith,
+      'notes': ?notes,
     });
     return result['appointment'] as Map<String, dynamic>;
   }
