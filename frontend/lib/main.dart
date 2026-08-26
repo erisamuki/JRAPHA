@@ -6,6 +6,9 @@ import 'core/theme/app_theme.dart';
 import 'core/widgets/role_home_screen.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/screens/login_screen.dart';
+import 'features/admin/screens/admin_dashboard_screen.dart';
+import 'features/reception/screens/reception_dashboard_screen.dart';
+import 'features/reception/providers/reception_provider.dart';
 
 void main() {
   runApp(
@@ -13,7 +16,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        // Add more app-wide providers here as features are built
+        ChangeNotifierProvider(create: (_) => ReceptionProvider()),
       ],
       child: const JRaphaApp(),
     ),
@@ -38,9 +41,6 @@ class JRaphaApp extends StatelessWidget {
   }
 }
 
-/// Decides which screen to show based on current auth state.
-/// Not authenticated -> LoginScreen. Authenticated -> RoleHomeScreen
-/// (temporary; will route to per-role dashboards once they're built).
 class _AuthGate extends StatelessWidget {
   const _AuthGate();
 
@@ -48,9 +48,17 @@ class _AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
 
-    if (authProvider.isAuthenticated) {
-      return const RoleHomeScreen();
+    if (!authProvider.isAuthenticated) {
+      return const LoginScreen();
     }
-    return const LoginScreen();
+
+    switch (authProvider.currentUser?.role) {
+      case 'admin':
+        return const AdminDashboardScreen();
+      case 'reception':
+        return const ReceptionDashboardScreen();
+      default:
+        return const RoleHomeScreen();
+    }
   }
 }

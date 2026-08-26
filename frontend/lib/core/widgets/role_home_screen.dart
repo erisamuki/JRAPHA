@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../features/auth/providers/auth_provider.dart';
-import '../../features/admin/screens/user_approvals_screen.dart';
 import '../theme/theme_toggle_button.dart';
 
-/// Temporary landing screen shown right after login, before role-specific
-/// dashboards (reception, nurse, doctor, etc.) are built. Replace the
-/// body's switch with real dashboard widgets as each one is completed.
+/// Temporary landing screen for roles that don't have a real dashboard
+/// yet (reception, nurse, doctor, laboratory, pharmacy). Admin now
+/// bypasses this entirely and goes straight to AdminDashboardScreen -
+/// see main.dart's _AuthGate.
 class RoleHomeScreen extends StatelessWidget {
   const RoleHomeScreen({super.key});
 
@@ -16,7 +16,6 @@ class RoleHomeScreen extends StatelessWidget {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.currentUser;
     final theme = Theme.of(context);
-    final isAdmin = user?.role == 'admin';
 
     return Scaffold(
       appBar: AppBar(
@@ -42,18 +41,6 @@ class RoleHomeScreen extends StatelessWidget {
               '${_roleLabel(user?.role ?? '')} dashboard coming next',
               style: theme.textTheme.bodyMedium,
             ),
-            if (isAdmin) ...[
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.how_to_reg_rounded),
-                label: const Text('Manage User Approvals'),
-                onPressed: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const UserApprovalsScreen()));
-                },
-              ),
-            ],
           ],
         ),
       ),

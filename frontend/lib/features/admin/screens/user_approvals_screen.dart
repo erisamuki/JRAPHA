@@ -43,7 +43,7 @@ class _UserApprovalsView extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, AdminProvider provider, ThemeData theme) {
-    if (provider.isLoading && provider.pendingUsers.isEmpty) {
+    if (provider.isLoadingPending && provider.pendingUsers.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -69,7 +69,7 @@ class _UserApprovalsView extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: provider.pendingUsers.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final user = provider.pendingUsers[index];
         return _PendingUserCard(user: user, isProcessing: provider.processingUserId == user.id);
