@@ -1,0 +1,61 @@
+[debug] [2026-08-26T17:53:06.091Z] ----------------------------------------------------------------------
+[debug] [2026-08-26T17:53:06.094Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\hp\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2026-08-26T17:53:06.094Z] CLI Version:   15.28.1
+[debug] [2026-08-26T17:53:06.094Z] Platform:      win32
+[debug] [2026-08-26T17:53:06.095Z] Node Version:  v24.15.0
+[debug] [2026-08-26T17:53:06.095Z] Detected Agent: unknown
+[debug] [2026-08-26T17:53:06.095Z] Time:          Wed Aug 26 2026 20:53:06 GMT+0300 (East Africa Time)
+[debug] [2026-08-26T17:53:06.095Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-08-26T17:53:06.116Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  D:\Jrapha
+
+[debug] [2026-08-26T17:53:30.516Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-08-26T17:53:30.516Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[info] i  If you want to create a project in a Google Cloud organization or folder, please use "firebase projects:create" instead, and return to this command when you've created the project. 
+[debug] [2026-08-26T17:54:40.309Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-08-26T17:54:40.310Z] > authorizing via signed-in user (erisamukisa51@gmail.com)
+[debug] [2026-08-26T17:55:14.879Z] Checked if tokens are valid: false, expires at: 1787569752455
+[debug] [2026-08-26T17:55:14.880Z] Checked if tokens are valid: false, expires at: 1787569752455
+[debug] [2026-08-26T17:55:14.880Z] > refreshing access token with scopes: []
+[debug] [2026-08-26T17:55:14.883Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-08-26T17:55:14.883Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-08-26T17:55:17.332Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-08-26T17:55:17.332Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-08-26T17:55:17.351Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1/projects:checkProjectId [none]
+[debug] [2026-08-26T17:55:17.351Z] >>> [apiv2][body] POST https://firebase.googleapis.com/v1/projects:checkProjectId {"proposedId":"Jrapha"}
+[debug] [2026-08-26T17:55:19.138Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1/projects:checkProjectId 200
+[debug] [2026-08-26T17:55:19.139Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1/projects:checkProjectId {"projectIdStatus":"PROJECT_ID_NOT_VALID","suggestedProjectId":"jrapha-bbc04"}
+[debug] [2026-08-26T17:56:09.652Z] Checked if tokens are valid: true, expires at: 1787770516332
+[debug] [2026-08-26T17:56:09.652Z] Checked if tokens are valid: true, expires at: 1787770516332
+[debug] [2026-08-26T17:56:09.656Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1/projects:checkProjectId [none]
+[debug] [2026-08-26T17:56:09.657Z] >>> [apiv2][body] POST https://firebase.googleapis.com/v1/projects:checkProjectId {"proposedId":"Jrapha-hms"}
+[debug] [2026-08-26T17:56:10.840Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1/projects:checkProjectId 200
+[debug] [2026-08-26T17:56:10.840Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1/projects:checkProjectId {"projectIdStatus":"PROJECT_ID_NOT_VALID","suggestedProjectId":"jrapha-hms"}
+[debug] [2026-08-26T17:56:37.463Z] Checked if tokens are valid: true, expires at: 1787770516332
+[debug] [2026-08-26T17:56:37.464Z] Checked if tokens are valid: true, expires at: 1787770516332
+[debug] [2026-08-26T17:56:37.467Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1/projects:checkProjectId [none]
+[debug] [2026-08-26T17:56:37.468Z] >>> [apiv2][body] POST https://firebase.googleapis.com/v1/projects:checkProjectId {"proposedId":"Jrapha-Biyinzika"}
+[debug] [2026-08-26T17:56:39.077Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1/projects:checkProjectId 200
+[debug] [2026-08-26T17:56:39.077Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1/projects:checkProjectId {"projectIdStatus":"PROJECT_ID_NOT_VALID","suggestedProjectId":"jrapha-biyinzika"}
+[debug] [2026-08-26T17:57:22.376Z] Checked if tokens are valid: true, expires at: 1787770516332
+[debug] [2026-08-26T17:57:22.376Z] Checked if tokens are valid: true, expires at: 1787770516332
+[debug] [2026-08-26T17:57:22.382Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1/projects:checkProjectId [none]
+[debug] [2026-08-26T17:57:22.382Z] >>> [apiv2][body] POST https://firebase.googleapis.com/v1/projects:checkProjectId {"proposedId":"Raphael"}
+[debug] [2026-08-26T17:57:24.960Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1/projects:checkProjectId 200
+[debug] [2026-08-26T17:57:24.960Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1/projects:checkProjectId {"projectIdStatus":"PROJECT_ID_NOT_VALID","suggestedProjectId":"raphael-db116"}
