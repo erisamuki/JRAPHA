@@ -15,16 +15,17 @@ const transporter = nodemailer.createTransport({
 // the admin still logs into the JRapha dashboard to approve/reject.
 async function notifyAdminsOfNewRegistration(pendingUser, db) {
   try {
-    const adminsResult = await db.query(
-      `SELECT email FROM users WHERE role = 'admin' AND status = 'approved'`
-    );
+    const admins = await db.users.findMany({
+      where: { role: 'admin', status: 'approved' },
+      select: { email: true },
+    });
 
-    if (adminsResult.rows.length === 0) {
+    if (admins.length === 0) {
       console.warn('No approved admins found to notify of new registration');
       return;
     }
 
-    const adminEmails = adminsResult.rows.map((row) => row.email);
+    const adminEmails = admins.map((row) => row.email);
 
     await transporter.sendMail({
       from: `"JRapha System" <${process.env.SMTP_USER}>`,

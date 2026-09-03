@@ -1,0 +1,322 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model appointments {
+  id                                       String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  patient_id                               String             @db.Uuid
+  scheduled_with                           String?            @db.Uuid
+  scheduled_at                             DateTime           @db.Timestamptz(6)
+  status                                   appointment_status @default(scheduled)
+  reminder_sent                            Boolean            @default(false)
+  created_by                               String?            @db.Uuid
+  notes                                    String?
+  created_at                               DateTime           @default(now()) @db.Timestamptz(6)
+  users_appointments_created_byTousers     users?             @relation("appointments_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  patients                                 patients           @relation(fields: [patient_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_appointments_scheduled_withTousers users?             @relation("appointments_scheduled_withTousers", fields: [scheduled_with], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([patient_id], map: "idx_appointments_patient")
+  @@index([scheduled_at], map: "idx_appointments_scheduled_at")
+  @@index([status], map: "idx_appointments_status")
+}
+
+model audit_log {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id     String?  @db.Uuid
+  action      String   @db.VarChar(100)
+  entity_type String   @db.VarChar(50)
+  entity_id   String?  @db.Uuid
+  details     Json?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  users       users?   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([entity_type, entity_id], map: "idx_audit_log_entity")
+  @@index([user_id], map: "idx_audit_log_user")
+}
+
+model billing {
+  id               String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  visit_id         String          @db.Uuid
+  total_amount_ugx Decimal         @default(0) @db.Decimal(12, 2)
+  amount_paid_ugx  Decimal         @default(0) @db.Decimal(12, 2)
+  payment_status   payment_status  @default(unpaid)
+  payment_method   payment_method?
+  processed_by     String?         @db.Uuid
+  created_at       DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime        @default(now()) @db.Timestamptz(6)
+  users            users?          @relation(fields: [processed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  visits           visits          @relation(fields: [visit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  billing_items    billing_items[]
+
+  @@index([payment_status], map: "idx_billing_status")
+  @@index([visit_id], map: "idx_billing_visit")
+}
+
+model billing_items {
+  id              String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  billing_id      String  @db.Uuid
+  description     String  @db.VarChar(200)
+  quantity        Int     @default(1)
+  unit_price_ugx  Decimal @db.Decimal(12, 2)
+  total_price_ugx Decimal @db.Decimal(12, 2)
+  billing         billing @relation(fields: [billing_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([billing_id], map: "idx_billing_items_billing")
+}
+
+model lab_orders {
+  id                                   String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  visit_id                             String           @db.Uuid
+  ordered_by                           String           @db.Uuid
+  test_name                            String           @db.VarChar(150)
+  status                               lab_order_status @default(ordered)
+  result                               String?
+  is_critical                          Boolean          @default(false)
+  processed_by                         String?          @db.Uuid
+  ordered_at                           DateTime         @default(now()) @db.Timestamptz(6)
+  completed_at                         DateTime?        @db.Timestamptz(6)
+  users_lab_orders_ordered_byTousers   users            @relation("lab_orders_ordered_byTousers", fields: [ordered_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_lab_orders_processed_byTousers users?           @relation("lab_orders_processed_byTousers", fields: [processed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  visits                               visits           @relation(fields: [visit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([status], map: "idx_lab_orders_status")
+  @@index([visit_id], map: "idx_lab_orders_visit")
+}
+
+model notifications {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  patient_id String?   @db.Uuid
+  user_id    String?   @db.Uuid
+  type       String    @db.VarChar(50)
+  channel    String    @default("sms") @db.VarChar(20)
+  message    String
+  sent_at    DateTime? @db.Timestamptz(6)
+  status     String    @default("pending") @db.VarChar(20)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  patients   patients? @relation(fields: [patient_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([patient_id], map: "idx_notifications_patient")
+  @@index([status], map: "idx_notifications_status")
+}
+
+model patients {
+  id                String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  patient_number    String          @unique @db.VarChar(20)
+  full_name         String          @db.VarChar(150)
+  date_of_birth     DateTime?       @db.Date
+  gender            gender?
+  phone             String?         @db.VarChar(20)
+  nin               String?         @db.VarChar(20)
+  district          String?         @db.VarChar(100)
+  next_of_kin_name  String?         @db.VarChar(150)
+  next_of_kin_phone String?         @db.VarChar(20)
+  registered_by     String?         @db.Uuid
+  created_at        DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime        @default(now()) @db.Timestamptz(6)
+  appointments      appointments[]
+  notifications     notifications[]
+  users             users?          @relation(fields: [registered_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  visits            visits[]
+
+  @@index([full_name], map: "idx_patients_name")
+  @@index([phone], map: "idx_patients_phone")
+}
+
+model pharmacy_stock {
+  id             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  drug_name      String    @db.VarChar(150)
+  batch_number   String?   @db.VarChar(50)
+  quantity       Int       @default(0)
+  unit           String?   @db.VarChar(20)
+  reorder_level  Int       @default(10)
+  expiry_date    DateTime? @db.Date
+  unit_price_ugx Decimal?  @db.Decimal(12, 2)
+  updated_by     String?   @db.Uuid
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime  @default(now()) @db.Timestamptz(6)
+  users          users?    @relation(fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([expiry_date], map: "idx_pharmacy_stock_expiry")
+  @@index([drug_name], map: "idx_pharmacy_stock_name")
+}
+
+model prescriptions {
+  id                                      String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  visit_id                                String              @db.Uuid
+  doctor_id                               String              @db.Uuid
+  drug_name                               String              @db.VarChar(150)
+  dosage                                  String?             @db.VarChar(100)
+  duration                                String?             @db.VarChar(50)
+  quantity                                Int?
+  status                                  prescription_status @default(pending)
+  dispensed_by                            String?             @db.Uuid
+  dispensed_at                            DateTime?           @db.Timestamptz(6)
+  created_at                              DateTime            @default(now()) @db.Timestamptz(6)
+  users_prescriptions_dispensed_byTousers users?              @relation("prescriptions_dispensed_byTousers", fields: [dispensed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_prescriptions_doctor_idTousers    users               @relation("prescriptions_doctor_idTousers", fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  visits                                  visits              @relation(fields: [visit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([status], map: "idx_prescriptions_status")
+  @@index([visit_id], map: "idx_prescriptions_visit")
+}
+
+model users {
+  id                                              String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  full_name                                       String           @db.VarChar(150)
+  email                                           String           @unique @db.VarChar(150)
+  phone                                           String?          @unique @db.VarChar(20)
+  password_hash                                   String
+  role                                            user_role
+  status                                          user_status      @default(pending)
+  approved_by                                     String?          @db.Uuid
+  approved_at                                     DateTime?        @db.Timestamptz(6)
+  created_at                                      DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at                                      DateTime         @default(now()) @db.Timestamptz(6)
+  appointments_appointments_created_byTousers     appointments[]   @relation("appointments_created_byTousers")
+  appointments_appointments_scheduled_withTousers appointments[]   @relation("appointments_scheduled_withTousers")
+  audit_log                                       audit_log[]
+  billing                                         billing[]
+  lab_orders_lab_orders_ordered_byTousers         lab_orders[]     @relation("lab_orders_ordered_byTousers")
+  lab_orders_lab_orders_processed_byTousers       lab_orders[]     @relation("lab_orders_processed_byTousers")
+  notifications                                   notifications[]
+  patients                                        patients[]
+  pharmacy_stock                                  pharmacy_stock[]
+  prescriptions_prescriptions_dispensed_byTousers prescriptions[]  @relation("prescriptions_dispensed_byTousers")
+  prescriptions_prescriptions_doctor_idTousers    prescriptions[]  @relation("prescriptions_doctor_idTousers")
+  users                                           users?           @relation("usersTousers", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_users                                     users[]          @relation("usersTousers")
+  visits_visits_assigned_doctorTousers            visits[]         @relation("visits_assigned_doctorTousers")
+  visits_visits_created_byTousers                 visits[]         @relation("visits_created_byTousers")
+  vitals                                          vitals[]
+
+  @@index([role], map: "idx_users_role")
+  @@index([status], map: "idx_users_status")
+}
+
+model visits {
+  id                                  String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  patient_id                          String          @db.Uuid
+  visit_type                          visit_type
+  status                              visit_status    @default(registered)
+  ward                                String?         @db.VarChar(50)
+  bed_number                          String?         @db.VarChar(20)
+  assigned_doctor                     String?         @db.Uuid
+  created_by                          String?         @db.Uuid
+  admitted_at                         DateTime?       @db.Timestamptz(6)
+  discharged_at                       DateTime?       @db.Timestamptz(6)
+  created_at                          DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at                          DateTime        @default(now()) @db.Timestamptz(6)
+  billing                             billing[]
+  lab_orders                          lab_orders[]
+  prescriptions                       prescriptions[]
+  users_visits_assigned_doctorTousers users?          @relation("visits_assigned_doctorTousers", fields: [assigned_doctor], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_visits_created_byTousers      users?          @relation("visits_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  patients                            patients        @relation(fields: [patient_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vitals                              vitals[]
+
+  @@index([patient_id], map: "idx_visits_patient")
+  @@index([status], map: "idx_visits_status")
+  @@index([visit_type], map: "idx_visits_type")
+}
+
+model vitals {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  visit_id       String   @db.Uuid
+  recorded_by    String   @db.Uuid
+  blood_pressure String?  @db.VarChar(15)
+  temperature_c  Decimal? @db.Decimal(4, 1)
+  pulse_bpm      Int?
+  resp_rate      Int?
+  spo2_percent   Int?
+  weight_kg      Decimal? @db.Decimal(5, 2)
+  height_cm      Decimal? @db.Decimal(5, 2)
+  notes          String?
+  recorded_at    DateTime @default(now()) @db.Timestamptz(6)
+  users          users    @relation(fields: [recorded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  visits         visits   @relation(fields: [visit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([visit_id], map: "idx_vitals_visit")
+}
+
+enum appointment_status {
+  scheduled
+  confirmed
+  completed
+  missed
+  cancelled
+}
+
+enum gender {
+  male
+  female
+  other
+}
+
+enum lab_order_status {
+  ordered
+  sample_collected
+  in_progress
+  completed
+  cancelled
+}
+
+enum payment_method {
+  cash
+  mtn_momo
+  airtel_money
+  insurance
+  other
+}
+
+enum payment_status {
+  unpaid
+  partially_paid
+  paid
+  waived
+}
+
+enum prescription_status {
+  pending
+  dispensed
+  partially_dispensed
+  cancelled
+}
+
+enum user_role {
+  admin
+  reception
+  nurse
+  doctor
+  laboratory
+  pharmacy
+}
+
+enum user_status {
+  pending
+  approved
+  rejected
+  suspended
+}
+
+enum visit_status {
+  registered
+  triaged
+  with_doctor
+  lab_pending
+  pharmacy_pending
+  admitted
+  discharged
+  closed
+}
+
+enum visit_type {
+  opd
+  inpatient
+}

@@ -4,20 +4,21 @@ import 'package:provider/provider.dart';
 import '../providers/admin_provider.dart';
 import '../models/pending_user_model.dart';
 
-class UserApprovalsScreen extends StatelessWidget {
+class UserApprovalsScreen extends StatefulWidget {
   const UserApprovalsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AdminProvider()..loadPendingUsers(),
-      child: const _UserApprovalsView(),
-    );
-  }
+  State<UserApprovalsScreen> createState() => _UserApprovalsScreenState();
 }
 
-class _UserApprovalsView extends StatelessWidget {
-  const _UserApprovalsView();
+class _UserApprovalsScreenState extends State<UserApprovalsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AdminProvider>().loadPendingUsers();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +70,7 @@ class _UserApprovalsView extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: provider.pendingUsers.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final user = provider.pendingUsers[index];
         return _PendingUserCard(user: user, isProcessing: provider.processingUserId == user.id);

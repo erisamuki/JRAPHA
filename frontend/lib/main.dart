@@ -7,6 +7,7 @@ import 'core/widgets/role_home_screen.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/admin/screens/admin_dashboard_screen.dart';
+import 'features/admin/providers/admin_provider.dart';
 import 'features/reception/screens/reception_dashboard_screen.dart';
 import 'features/reception/providers/reception_provider.dart';
 import 'features/nurse/screens/nurse_dashboard_screen.dart';
@@ -24,6 +25,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AdminProvider()),
         ChangeNotifierProvider(create: (_) => ReceptionProvider()),
         ChangeNotifierProvider(create: (_) => NurseProvider()),
         ChangeNotifierProvider(create: (_) => DoctorProvider()),

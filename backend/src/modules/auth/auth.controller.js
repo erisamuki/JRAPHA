@@ -20,21 +20,31 @@ async function register(req, res) {
   }
 
   try {
-    const existing = await db.query('SELECT id FROM users WHERE email = $1', [email]);
-    if (existing.rows.length > 0) {
+    const existing = await db.users.findUnique({ where: { email } });
+    if (existing) {
       return res.status(409).json({ error: 'A user with this email already exists' });
     }
 
     const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-    const result = await db.query(
-      `INSERT INTO users (full_name, email, phone, password_hash, role, status)
-       VALUES ($1, $2, $3, $4, $5, 'pending')
-       RETURNING id, full_name, email, role, status, created_at`,
-      [full_name, email, phone || null, password_hash, role]
-    );
-
-    const newUser = result.rows[0];
+    const newUser = await db.users.create({
+      data: {
+        full_name,
+        email,
+        phone: phone || null,
+        password_hash,
+        role,
+        status: 'pending',
+      },
+      select: {
+        id: true,
+        full_name: true,
+        email: true,
+        role: true,
+        status: true,
+        created_at: true,
+      },
+    });
 
     // Fire-and-forget: don't block the response on email delivery
     notifyAdminsOfNewRegistration(newUser, db);
@@ -58,8 +68,7 @@ async function login(req, res) {
   }
 
   try {
-    const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-    const user = result.rows[0];
+    const user = await db.users.findUnique({ where: { email } });
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
@@ -105,11 +114,19 @@ async function login(req, res) {
 // GET /api/auth/pending-users  (admin only)
 async function getPendingUsers(req, res) {
   try {
-    const result = await db.query(
-      `SELECT id, full_name, email, phone, role, created_at
-       FROM users WHERE status = 'pending' ORDER BY created_at ASC`
-    );
-    return res.json({ users: result.rows });
+    const users = await db.users.findMany({
+      where: { status: 'pending' },
+      select: {
+        id: true,
+        full_name: true,
+        email: true,
+        phone: true,
+        role: true,
+        created_at: true,
+      },
+      orderBy: { created_at: 'asc' },
+    });
+    return res.json({ users });
   } catch (err) {
     console.error('getPendingUsers error:', err);
     return res.status(500).json({ error: 'Failed to fetch pending users' });
@@ -122,28 +139,41 @@ async function approveUser(req, res) {
   const adminId = req.user.id;
 
   try {
-    const result = await db.query(
-      `UPDATE users SET status = 'approved', approved_by = $1, approved_at = now()
-       WHERE id = $2 RETURNING id, full_name, email, role, status`,
-      [adminId, id]
-    );
+    const updatedUser = await db.users.update({
+      where: { id },
+      data: {
+        status: 'approved',
+        approved_by: adminId,
+        approved_at: new Date(),
+      },
+      select: {
+        id: true,
+        full_name: true,
+        email: true,
+        role: true,
+        status: true,
+      },
+    });
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    await db.query(
-      `INSERT INTO audit_log (user_id, action, entity_type, entity_id, details)
-       VALUES ($1, 'user_approved', 'users', $2, $3)`,
-      [adminId, id, JSON.stringify({ approved_user_email: result.rows[0].email })]
-    );
+    await db.audit_log.create({
+      data: {
+        user_id: adminId,
+        action: 'user_approved',
+        entity_type: 'users',
+        entity_id: id,
+        details: { approved_user_email: updatedUser.email },
+      },
+    });
 
     // Notify connected admin dashboards in real time
     const io = req.app.get('io');
-    io.emit('user_status_changed', result.rows[0]);
+    io.emit('user_status_changed', updatedUser);
 
-    return res.json({ message: 'User approved', user: result.rows[0] });
+    return res.json({ message: 'User approved', user: updatedUser });
   } catch (err) {
+    if (err.code === 'P2025') {
+      return res.status(404).json({ error: 'User not found' });
+    }
     console.error('approveUser error:', err);
     return res.status(500).json({ error: 'Failed to approve user' });
   }
@@ -155,27 +185,40 @@ async function rejectUser(req, res) {
   const adminId = req.user.id;
 
   try {
-    const result = await db.query(
-      `UPDATE users SET status = 'rejected', approved_by = $1, approved_at = now()
-       WHERE id = $2 RETURNING id, full_name, email, role, status`,
-      [adminId, id]
-    );
+    const updatedUser = await db.users.update({
+      where: { id },
+      data: {
+        status: 'rejected',
+        approved_by: adminId,
+        approved_at: new Date(),
+      },
+      select: {
+        id: true,
+        full_name: true,
+        email: true,
+        role: true,
+        status: true,
+      },
+    });
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    await db.query(
-      `INSERT INTO audit_log (user_id, action, entity_type, entity_id, details)
-       VALUES ($1, 'user_rejected', 'users', $2, $3)`,
-      [adminId, id, JSON.stringify({ rejected_user_email: result.rows[0].email })]
-    );
+    await db.audit_log.create({
+      data: {
+        user_id: adminId,
+        action: 'user_rejected',
+        entity_type: 'users',
+        entity_id: id,
+        details: { rejected_user_email: updatedUser.email },
+      },
+    });
 
     const io = req.app.get('io');
-    io.emit('user_status_changed', result.rows[0]);
+    io.emit('user_status_changed', updatedUser);
 
-    return res.json({ message: 'User rejected', user: result.rows[0] });
+    return res.json({ message: 'User rejected', user: updatedUser });
   } catch (err) {
+    if (err.code === 'P2025') {
+      return res.status(404).json({ error: 'User not found' });
+    }
     console.error('rejectUser error:', err);
     return res.status(500).json({ error: 'Failed to reject user' });
   }

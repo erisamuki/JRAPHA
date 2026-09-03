@@ -1,24 +1,20 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+// src/config/db.js
+const { PrismaClient } = require('../generated/prisma');
+const { PrismaPg } = require('@prisma/adapter-pg');
 
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
 });
 
-pool.on('connect', () => {
-  console.log('Connected to PostgreSQL (jrapha)');
-});
+const prisma = new PrismaClient({ adapter });
 
-pool.on('error', (err) => {
-  console.error('Unexpected PostgreSQL error:', err);
-  process.exit(1);
-});
+prisma.$connect()
+  .then(() => {
+    console.log('Connected to PostgreSQL (Neon via Prisma)');
+  })
+  .catch((err) => {
+    console.error('Unexpected Prisma database connection error:', err);
+    process.exit(1);
+  });
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-  pool,
-};
+module.exports = prisma;
