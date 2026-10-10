@@ -6,11 +6,10 @@ import 'token_storage.dart';
 /// Handles base URL, JSON encoding, and attaching the JWT token
 /// automatically on every request once the user is logged in.
 class ApiClient {
-  // Windows desktop / Chrome talking to a locally running backend.
-  // If you later run this on an Android emulator, localhost won't
-  // reach your machine - use 10.0.2.2 instead. A physical phone needs
-  // your PC's LAN IP address (e.g. http://192.168.x.x:5000).
-  static const String baseUrl = 'http://localhost:5000/api';
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:5000/api',
+  );
 
   Future<Map<String, String>> _headers({bool auth = true}) async {
     final headers = {'Content-Type': 'application/json'};

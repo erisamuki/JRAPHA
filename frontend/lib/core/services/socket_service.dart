@@ -9,9 +9,10 @@ import 'package:socket_io_client/socket_io_client.dart' as io_client;
 class SocketService {
   io_client.Socket? _socket;
 
-  // Same base as ApiClient, minus the /api suffix (Socket.IO connects
-  // to the server root, not a REST path).
-  static const String _socketUrl = 'http://localhost:5000';
+  static const String _socketUrl = String.fromEnvironment(
+    'SOCKET_URL',
+    defaultValue: 'http://localhost:5000',
+  );
 
   void connect({required void Function() onRelevantEvent}) {
     _socket = io_client.io(

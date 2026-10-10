@@ -215,6 +215,22 @@ The server will start on `http://localhost:5000` (or configured PORT).
 npm start
 ```
 
+### Web App
+
+The Flutter frontend can be run locally in a browser from the `frontend`
+directory:
+
+```bash
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:5000/api --dart-define=SOCKET_URL=http://localhost:5000
+```
+
+The Render deployment is defined in `render.yaml`. In Render, create a new
+Blueprint from this repository and select that file to create the `jrapha-web`
+frontend service. It builds the Flutter web app and serves it separately from
+the existing backend at `https://jrapha.onrender.com`. The frontend service
+URL shown by Render is the browser URL for the full app. On Render's free plan,
+the web service may spin down after inactivity.
+
 ### Verify Server is Running
 
 The root endpoint returns the API name and a basic running status:
