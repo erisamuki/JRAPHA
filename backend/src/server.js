@@ -24,6 +24,14 @@ app.use(morgan('dev'));
 // Make io accessible in route handlers via req.app.get('io')
 app.set('io', io);
 
+app.get('/', (req, res) => {
+  res.json({
+    name: 'JRapha API',
+    status: 'running',
+    health_check: '/api/health',
+  });
+});
+
 // Health check
 app.get('/api/health', async (req, res) => {
   try {

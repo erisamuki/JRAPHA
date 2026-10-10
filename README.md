@@ -218,7 +218,7 @@ npm start
 ### Verify Server is Running
 
 ```bash
-curl http://localhost:5000/health
+curl http://localhost:5000/api/health
 ```
 
 ---
