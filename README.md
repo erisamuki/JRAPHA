@@ -217,6 +217,25 @@ npm start
 
 ### Verify Server is Running
 
+The root endpoint returns the API name and a basic running status:
+
+```bash
+curl https://jrapha.onrender.com/
+```
+
+Example response:
+
+```json
+{
+  "name": "JRapha API",
+  "status": "running",
+  "health_check": "/api/health"
+}
+```
+
+For a database connectivity check, use the health endpoint. It returns the
+database server time when the connection succeeds:
+
 ```bash
 curl http://localhost:5000/api/health
 ```
