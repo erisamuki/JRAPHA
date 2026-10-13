@@ -3,6 +3,6 @@ services:
     name: jrapha-web
     runtime: docker
     plan: free
-    dockerfilePath: ./frontend/Dockerfile
+    dockerfilePath: ./Dockerfile
     dockerContext: ./frontend
     healthCheckPath: /
