@@ -13,12 +13,46 @@ class PatientVisitScreen extends StatefulWidget {
 }
 
 class _PatientVisitScreenState extends State<PatientVisitScreen> {
+  final _diagnosisController = TextEditingController();
+  String? _diagnosisLoadedForVisit;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DoctorProvider>().loadVisitDetail(widget.patient.visitId);
     });
+  }
+
+  @override
+  void dispose() {
+    _diagnosisController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveDiagnosis() async {
+    final diagnosis = _diagnosisController.text.trim();
+    if (diagnosis.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a diagnosis before saving')),
+      );
+      return;
+    }
+
+    final provider = context.read<DoctorProvider>();
+    final success = await provider.saveDiagnosis(
+      visitId: widget.patient.visitId,
+      diagnosis: diagnosis,
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? 'Diagnosis saved' : (provider.errorMessage ?? 'Failed'),
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _showLabOrderDialog() async {
@@ -30,10 +64,15 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'Test name (e.g. Malaria Test)'),
+          decoration: const InputDecoration(
+            labelText: 'Test name (e.g. Malaria Test)',
+          ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             child: const Text('Order'),
@@ -52,13 +91,23 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? 'Lab order created' : (provider.errorMessage ?? 'Failed')),
+          content: Text(
+            success ? 'Lab order created' : (provider.errorMessage ?? 'Failed'),
+          ),
         ),
       );
     }
   }
 
   Future<void> _showPrescriptionDialog() async {
+    final detail = context.read<DoctorProvider>().visitDetail;
+    if (detail?.diagnosis?.trim().isNotEmpty != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Save a diagnosis before prescribing')),
+      );
+      return;
+    }
+
     final drugController = TextEditingController();
     final dosageController = TextEditingController();
     final durationController = TextEditingController();
@@ -79,12 +128,16 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
             const SizedBox(height: 8),
             TextField(
               controller: dosageController,
-              decoration: const InputDecoration(labelText: 'Dosage (e.g. 500mg twice daily)'),
+              decoration: const InputDecoration(
+                labelText: 'Dosage (e.g. 500mg twice daily)',
+              ),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: durationController,
-              decoration: const InputDecoration(labelText: 'Duration (e.g. 5 days)'),
+              decoration: const InputDecoration(
+                labelText: 'Duration (e.g. 5 days)',
+              ),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -95,7 +148,10 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Prescribe'),
@@ -104,20 +160,29 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
       ),
     );
 
-    if (confirmed != true || drugController.text.trim().isEmpty || !mounted) return;
+    if (confirmed != true || drugController.text.trim().isEmpty || !mounted)
+      return;
 
     final provider = context.read<DoctorProvider>();
     final success = await provider.createPrescription(
       visitId: widget.patient.visitId,
       drugName: drugController.text.trim(),
-      dosage: dosageController.text.trim().isEmpty ? null : dosageController.text.trim(),
-      duration: durationController.text.trim().isEmpty ? null : durationController.text.trim(),
+      dosage: dosageController.text.trim().isEmpty
+          ? null
+          : dosageController.text.trim(),
+      duration: durationController.text.trim().isEmpty
+          ? null
+          : durationController.text.trim(),
       quantity: int.tryParse(quantityController.text.trim()),
     );
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? 'Prescription added' : (provider.errorMessage ?? 'Failed')),
+          content: Text(
+            success
+                ? 'Prescription added'
+                : (provider.errorMessage ?? 'Failed'),
+          ),
         ),
       );
     }
@@ -128,6 +193,10 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
     final provider = context.watch<DoctorProvider>();
     final detail = provider.visitDetail;
     final theme = Theme.of(context);
+    if (detail != null && _diagnosisLoadedForVisit != detail.visitId) {
+      _diagnosisController.text = detail.diagnosis ?? '';
+      _diagnosisLoadedForVisit = detail.visitId;
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.patient.fullName)),
@@ -144,9 +213,12 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+                            backgroundColor: theme.colorScheme.primary
+                                .withValues(alpha: 0.12),
                             child: Text(
-                              detail.fullName.isNotEmpty ? detail.fullName[0].toUpperCase() : '?',
+                              detail.fullName.isNotEmpty
+                                  ? detail.fullName[0].toUpperCase()
+                                  : '?',
                               style: TextStyle(
                                 color: theme.colorScheme.primary,
                                 fontWeight: FontWeight.w700,
@@ -158,12 +230,54 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(detail.fullName, style: theme.textTheme.titleMedium),
+                                Text(
+                                  detail.fullName,
+                                  style: theme.textTheme.titleMedium,
+                                ),
                                 Text(
                                   '${detail.patientNumber} · ${detail.status.replaceAll('_', ' ')}',
                                   style: theme.textTheme.bodySmall,
                                 ),
                               ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Diagnosis', style: theme.textTheme.titleMedium),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Required before prescribing. The pharmacy will use this to double-check the prescription.',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _diagnosisController,
+                            minLines: 2,
+                            maxLines: 4,
+                            decoration: const InputDecoration(
+                              labelText: 'Clinical diagnosis',
+                              hintText: 'Enter the patient diagnosis',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: FilledButton(
+                              onPressed: provider.isSubmitting
+                                  ? null
+                                  : _saveDiagnosis,
+                              child: const Text('Save diagnosis'),
                             ),
                           ),
                         ],
@@ -185,7 +299,10 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
                           runSpacing: 8,
                           children: [
                             if (detail.vitals.first.bloodPressure != null)
-                              _VitalChip(label: 'BP', value: detail.vitals.first.bloodPressure!),
+                              _VitalChip(
+                                label: 'BP',
+                                value: detail.vitals.first.bloodPressure!,
+                              ),
                             if (detail.vitals.first.temperatureC != null)
                               _VitalChip(
                                 label: 'Temp',
@@ -231,15 +348,25 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
                             lab.status == 'completed'
                                 ? Icons.check_circle_outline_rounded
                                 : Icons.hourglass_empty_rounded,
-                            color: lab.isCritical ? theme.colorScheme.error : null,
+                            color: lab.isCritical
+                                ? theme.colorScheme.error
+                                : null,
                           ),
                           title: Text(lab.testName),
-                          subtitle: Text(lab.result ?? lab.status.replaceAll('_', ' ')),
+                          subtitle: Text(
+                            lab.result ?? lab.status.replaceAll('_', ' '),
+                          ),
                           trailing: lab.isCritical
                               ? Chip(
-                                  label: const Text('Critical', style: TextStyle(fontSize: 11)),
-                                  backgroundColor: theme.colorScheme.error.withValues(alpha: 0.12),
-                                  labelStyle: TextStyle(color: theme.colorScheme.error),
+                                  label: const Text(
+                                    'Critical',
+                                    style: TextStyle(fontSize: 11),
+                                  ),
+                                  backgroundColor: theme.colorScheme.error
+                                      .withValues(alpha: 0.12),
+                                  labelStyle: TextStyle(
+                                    color: theme.colorScheme.error,
+                                  ),
                                   visualDensity: VisualDensity.compact,
                                 )
                               : null,
@@ -253,9 +380,15 @@ class _PatientVisitScreenState extends State<PatientVisitScreen> {
                     children: [
                       Text('Prescriptions', style: theme.textTheme.titleMedium),
                       TextButton.icon(
-                        onPressed: _showPrescriptionDialog,
+                        onPressed: detail.diagnosis?.trim().isNotEmpty == true
+                            ? _showPrescriptionDialog
+                            : null,
                         icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text('Prescribe'),
+                        label: Text(
+                          detail.diagnosis?.trim().isNotEmpty == true
+                              ? 'Prescribe'
+                              : 'Save diagnosis first',
+                        ),
                       ),
                     ],
                   ),

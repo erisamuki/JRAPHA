@@ -14,7 +14,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ============================================================
 
 CREATE TYPE user_role AS ENUM (
-    'admin', 'reception', 'nurse', 'doctor', 'laboratory', 'pharmacy'
+    'admin', 'reception', 'cashier', 'nurse', 'doctor', 'laboratory', 'pharmacy'
 );
 
 CREATE TYPE user_status AS ENUM (
@@ -45,7 +45,7 @@ CREATE TYPE payment_status AS ENUM (
 );
 
 CREATE TYPE payment_method AS ENUM (
-    'cash', 'mtn_momo', 'airtel_money', 'insurance', 'other'
+    'cash', 'mtn_momo', 'airtel_money', 'bank_card', 'insurance', 'other'
 );
 
 CREATE TYPE gender AS ENUM ('male', 'female', 'other');
@@ -103,6 +103,7 @@ CREATE TABLE visits (
     patient_id      UUID NOT NULL REFERENCES patients(id),
     visit_type      visit_type NOT NULL,
     status          visit_status NOT NULL DEFAULT 'registered',
+    diagnosis       TEXT,
     ward            VARCHAR(50),        -- for inpatient
     bed_number      VARCHAR(20),        -- for inpatient
     assigned_doctor UUID REFERENCES users(id),
@@ -249,6 +250,18 @@ CREATE TABLE billing_items (
 );
 
 CREATE INDEX idx_billing_items_billing ON billing_items(billing_id);
+
+CREATE TABLE billing_payments (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    billing_id      UUID NOT NULL REFERENCES billing(id) ON DELETE CASCADE,
+    amount_ugx      NUMERIC(12,2) NOT NULL CHECK (amount_ugx > 0),
+    payment_method  payment_method NOT NULL,
+    reference       VARCHAR(100),
+    processed_by    UUID REFERENCES users(id),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_billing_payments_billing ON billing_payments(billing_id, created_at);
 
 -- ============================================================
 -- NOTIFICATIONS (SMS LOG)

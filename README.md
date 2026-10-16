@@ -51,7 +51,7 @@ JRapha is a full-featured Hospital Management System designed to streamline hosp
 | **bcrypt** | Password hashing | ^5.1.1 |
 | **Socket.io** | Real-time WebSocket | ^4.7.5 |
 | **Africa's Talking** | SMS/USSD gateway | ^0.7.0 |
-| **Nodemailer** | Email service | ^6.9.14 |
+| **Nodemailer** | Email service | ^10.1.1 |
 
 ### Security & Utilities
 - **Helmet** - HTTP security headers
@@ -302,6 +302,17 @@ Opens an interactive database browser at `http://localhost:5555`
 ```bash
 npx prisma generate
 ```
+
+### Cashier Billing
+
+Existing databases must run these SQL files once, in order, using the Neon SQL
+Editor or `psql`: `002_cashier_billing_payments.sql`,
+`003_visit_diagnosis.sql`, and `004_add_cashier_user_role.sql`. They add cashier
+accounts and payment history, doctor diagnosis support, and the cashier role.
+Fresh databases created from `backend/database/migrations/schema.sql` already
+include the schema changes. The cashier screen records payments after staff
+verify them with the external mobile-money or card provider; it does not initiate
+provider charges.
 
 ---
 

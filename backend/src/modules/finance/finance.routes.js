@@ -6,13 +6,12 @@ const {
   createBilling, getBilling, recordPayment, getOutstandingBalances, getRevenueReport,
 } = require('./finance.controller');
 
-// Reception needs billing at point-of-service; admin needs full oversight
-router.use(verifyToken, requireRole('reception', 'admin'));
+router.use(verifyToken);
 
-router.post('/billing', createBilling);
-router.get('/billing/:id', getBilling);
-router.patch('/billing/:id/payment', recordPayment);
-router.get('/outstanding', getOutstandingBalances);
-router.get('/revenue', getRevenueReport);
+router.post('/billing', requireRole('reception', 'admin'), createBilling);
+router.get('/billing/:id', requireRole('cashier', 'reception', 'admin'), getBilling);
+router.patch('/billing/:id/payment', requireRole('cashier', 'reception', 'admin'), recordPayment);
+router.get('/outstanding', requireRole('cashier', 'reception', 'admin'), getOutstandingBalances);
+router.get('/revenue', requireRole('cashier', 'reception', 'admin'), getRevenueReport);
 
 module.exports = router;

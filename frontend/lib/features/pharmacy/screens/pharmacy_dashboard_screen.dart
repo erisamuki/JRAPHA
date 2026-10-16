@@ -11,7 +11,8 @@ class PharmacyDashboardScreen extends StatefulWidget {
   const PharmacyDashboardScreen({super.key});
 
   @override
-  State<PharmacyDashboardScreen> createState() => _PharmacyDashboardScreenState();
+  State<PharmacyDashboardScreen> createState() =>
+      _PharmacyDashboardScreenState();
 }
 
 class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
@@ -30,7 +31,11 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? 'Dispensed ${rx.drugName}' : (provider.errorMessage ?? 'Failed')),
+          content: Text(
+            success
+                ? 'Dispensed ${rx.drugName}'
+                : (provider.errorMessage ?? 'Failed'),
+          ),
         ),
       );
     }
@@ -57,8 +62,14 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
           ],
           bottom: const TabBar(
             tabs: [
-              Tab(text: 'Dispensing', icon: Icon(Icons.medication_liquid_rounded, size: 20)),
-              Tab(text: 'Stock', icon: Icon(Icons.inventory_2_rounded, size: 20)),
+              Tab(
+                text: 'Dispensing',
+                icon: Icon(Icons.medication_liquid_rounded, size: 20),
+              ),
+              Tab(
+                text: 'Stock',
+                icon: Icon(Icons.inventory_2_rounded, size: 20),
+              ),
             ],
           ),
         ),
@@ -100,9 +111,22 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
                           child: ListTile(
                             leading: const Icon(Icons.medication_outlined),
                             title: Text(rx.drugName),
-                            subtitle: Text(
-                              '${rx.fullName} · ${rx.patientNumber}'
-                              '${rx.dosage != null ? ' · ${rx.dosage}' : ''}',
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${rx.fullName} · ${rx.patientNumber}'
+                                  '${rx.dosage != null ? ' · ${rx.dosage}' : ''}',
+                                ),
+                                Text(
+                                  'Diagnosis: ${rx.diagnosis?.isNotEmpty == true ? rx.diagnosis : 'Not recorded'}',
+                                  style: TextStyle(
+                                    color: rx.diagnosis?.isNotEmpty == true
+                                        ? null
+                                        : theme.colorScheme.error,
+                                  ),
+                                ),
+                              ],
                             ),
                             trailing: FilledButton(
                               onPressed: () => _handleDispense(rx),
@@ -133,10 +157,13 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
                           icon: const Icon(Icons.add_rounded, size: 18),
                           label: const Text('Add Stock'),
                           onPressed: () async {
-                            await Navigator.of(
-                              context,
-                            ).push(MaterialPageRoute(builder: (_) => const AddStockScreen()));
-                            if (context.mounted) context.read<PharmacyProvider>().loadStock();
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const AddStockScreen(),
+                              ),
+                            );
+                            if (context.mounted)
+                              context.read<PharmacyProvider>().loadStock();
                           },
                         ),
                       ],
@@ -157,18 +184,24 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             physics: const AlwaysScrollableScrollPhysics(),
                             itemCount: pharmacy.stock.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 8),
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 8),
                             itemBuilder: (context, index) {
                               final item = pharmacy.stock[index];
-                              final flagged = item.isLowStock || item.isNearExpiry;
+                              final flagged =
+                                  item.isLowStock || item.isNearExpiry;
                               return Card(
                                 color: flagged
-                                    ? theme.colorScheme.error.withValues(alpha: 0.06)
+                                    ? theme.colorScheme.error.withValues(
+                                        alpha: 0.06,
+                                      )
                                     : null,
                                 child: ListTile(
                                   leading: Icon(
                                     Icons.inventory_2_outlined,
-                                    color: flagged ? theme.colorScheme.error : null,
+                                    color: flagged
+                                        ? theme.colorScheme.error
+                                        : null,
                                   ),
                                   title: Text(item.drugName),
                                   subtitle: Text(
@@ -178,15 +211,18 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
                                   trailing: flagged
                                       ? Chip(
                                           label: Text(
-                                            item.isLowStock ? 'Low stock' : 'Near expiry',
+                                            item.isLowStock
+                                                ? 'Low stock'
+                                                : 'Near expiry',
                                             style: TextStyle(
                                               fontSize: 11,
                                               color: theme.colorScheme.error,
                                             ),
                                           ),
-                                          backgroundColor: theme.colorScheme.error.withValues(
-                                            alpha: 0.12,
-                                          ),
+                                          backgroundColor: theme
+                                              .colorScheme
+                                              .error
+                                              .withValues(alpha: 0.12),
                                           visualDensity: VisualDensity.compact,
                                         )
                                       : null,

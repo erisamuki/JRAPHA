@@ -5,7 +5,7 @@ const db = require('../../config/db');
 async function getPharmacyQueue(req, res) {
   try {
     const result = await db.query(
-      `SELECT pr.*, p.full_name, p.patient_number
+      `SELECT pr.*, p.full_name, p.patient_number, v.diagnosis
        FROM prescriptions pr
        JOIN visits v ON v.id = pr.visit_id
        JOIN patients p ON p.id = v.patient_id

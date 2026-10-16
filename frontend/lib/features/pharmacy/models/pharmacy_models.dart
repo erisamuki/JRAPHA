@@ -9,6 +9,7 @@ class PharmacyQueueItem {
   final String status;
   final String fullName;
   final String patientNumber;
+  final String? diagnosis;
   final DateTime createdAt;
 
   PharmacyQueueItem({
@@ -21,6 +22,7 @@ class PharmacyQueueItem {
     required this.status,
     required this.fullName,
     required this.patientNumber,
+    this.diagnosis,
     required this.createdAt,
   });
 
@@ -35,6 +37,7 @@ class PharmacyQueueItem {
       status: json['status'] as String,
       fullName: json['full_name'] as String,
       patientNumber: json['patient_number'] as String,
+      diagnosis: json['diagnosis'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -74,7 +77,9 @@ class StockItem {
       quantity: json['quantity'] as int,
       unit: json['unit'] as String?,
       reorderLevel: json['reorder_level'] as int,
-      expiryDate: json['expiry_date'] != null ? DateTime.tryParse(json['expiry_date']) : null,
+      expiryDate: json['expiry_date'] != null
+          ? DateTime.tryParse(json['expiry_date'])
+          : null,
       unitPriceUgx: json['unit_price_ugx'] != null
           ? double.tryParse(json['unit_price_ugx'].toString())
           : null,

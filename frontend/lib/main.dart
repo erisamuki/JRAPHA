@@ -18,6 +18,8 @@ import 'features/laboratory/screens/lab_dashboard_screen.dart';
 import 'features/laboratory/providers/lab_provider.dart';
 import 'features/pharmacy/screens/pharmacy_dashboard_screen.dart';
 import 'features/pharmacy/providers/pharmacy_provider.dart';
+import 'features/finance/providers/cashier_provider.dart';
+import 'features/finance/screens/cashier_dashboard_screen.dart';
 
 void main() {
   runApp(
@@ -31,6 +33,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => DoctorProvider()),
         ChangeNotifierProvider(create: (_) => LabProvider()),
         ChangeNotifierProvider(create: (_) => PharmacyProvider()),
+        ChangeNotifierProvider(create: (_) => CashierProvider()),
       ],
       child: const JRaphaApp(),
     ),
@@ -71,6 +74,8 @@ class _AuthGate extends StatelessWidget {
         return const AdminDashboardScreen();
       case 'reception':
         return const ReceptionDashboardScreen();
+      case 'cashier':
+        return const CashierDashboardScreen();
       case 'nurse':
         return const NurseDashboardScreen();
       case 'doctor':

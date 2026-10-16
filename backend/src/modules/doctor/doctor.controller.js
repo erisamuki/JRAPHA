@@ -61,6 +61,31 @@ async function getVisitDetail(req, res) {
   }
 }
 
+// PATCH /api/doctor/visits/:visit_id/diagnosis
+async function saveVisitDiagnosis(req, res) {
+  const { visit_id } = req.params;
+  const diagnosis = typeof req.body.diagnosis === 'string' ? req.body.diagnosis.trim() : '';
+
+  if (!diagnosis) {
+    return res.status(400).json({ error: 'diagnosis is required' });
+  }
+
+  try {
+    const result = await db.query(
+      `UPDATE visits SET diagnosis = $1, updated_at = now()
+       WHERE id = $2 RETURNING id, diagnosis`,
+      [diagnosis, visit_id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Visit not found' });
+    }
+    return res.json({ visit: result.rows[0] });
+  } catch (err) {
+    console.error('saveVisitDiagnosis error:', err);
+    return res.status(500).json({ error: 'Failed to save diagnosis' });
+  }
+}
+
 // POST /api/doctor/lab-orders
 async function createLabOrder(req, res) {
   const { visit_id, test_name } = req.body;
@@ -97,6 +122,17 @@ async function createPrescription(req, res) {
   }
 
   try {
+    const visitResult = await db.query(
+      `SELECT diagnosis FROM visits WHERE id = $1`,
+      [visit_id]
+    );
+    if (visitResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Visit not found' });
+    }
+    if (!visitResult.rows[0].diagnosis || !visitResult.rows[0].diagnosis.trim()) {
+      return res.status(400).json({ error: 'Save a diagnosis before creating a prescription' });
+    }
+
     const result = await db.query(
       `INSERT INTO prescriptions (visit_id, doctor_id, drug_name, dosage, duration, quantity, status)
        VALUES ($1,$2,$3,$4,$5,$6,'pending') RETURNING *`,
@@ -115,4 +151,10 @@ async function createPrescription(req, res) {
   }
 }
 
-module.exports = { getDoctorQueue, getVisitDetail, createLabOrder, createPrescription };
+module.exports = {
+  getDoctorQueue,
+  getVisitDetail,
+  saveVisitDiagnosis,
+  createLabOrder,
+  createPrescription,
+};

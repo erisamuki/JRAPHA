@@ -56,7 +56,10 @@ class DoctorProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> createLabOrder({required String visitId, required String testName}) async {
+  Future<bool> createLabOrder({
+    required String visitId,
+    required String testName,
+  }) async {
     _isSubmitting = true;
     notifyListeners();
     try {
@@ -68,6 +71,28 @@ class DoctorProvider extends ChangeNotifier {
       return false;
     } catch (e) {
       _errorMessage = 'Failed to create lab order.';
+      return false;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> saveDiagnosis({
+    required String visitId,
+    required String diagnosis,
+  }) async {
+    _isSubmitting = true;
+    notifyListeners();
+    try {
+      await _service.saveDiagnosis(visitId: visitId, diagnosis: diagnosis);
+      await loadVisitDetail(visitId);
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      return false;
+    } catch (e) {
+      _errorMessage = 'Failed to save diagnosis.';
       return false;
     } finally {
       _isSubmitting = false;

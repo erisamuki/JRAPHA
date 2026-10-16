@@ -89,8 +89,12 @@ class VisitVitals {
           : null,
       pulseBpm: json['pulse_bpm'] as int?,
       spo2Percent: json['spo2_percent'] as int?,
-      weightKg: json['weight_kg'] != null ? double.tryParse(json['weight_kg'].toString()) : null,
-      heightCm: json['height_cm'] != null ? double.tryParse(json['height_cm'].toString()) : null,
+      weightKg: json['weight_kg'] != null
+          ? double.tryParse(json['weight_kg'].toString())
+          : null,
+      heightCm: json['height_cm'] != null
+          ? double.tryParse(json['height_cm'].toString())
+          : null,
       recordedAt: DateTime.parse(json['recorded_at'] as String),
     );
   }
@@ -102,6 +106,7 @@ class VisitDetailModel {
   final String fullName;
   final String patientNumber;
   final String status;
+  final String? diagnosis;
   final List<VisitVitals> vitals;
   final List<LabOrderModel> labOrders;
   final List<PrescriptionModel> prescriptions;
@@ -111,6 +116,7 @@ class VisitDetailModel {
     required this.fullName,
     required this.patientNumber,
     required this.status,
+    this.diagnosis,
     required this.vitals,
     required this.labOrders,
     required this.prescriptions,
@@ -123,6 +129,7 @@ class VisitDetailModel {
       fullName: visit['full_name'] as String,
       patientNumber: visit['patient_number'] as String,
       status: visit['status'] as String,
+      diagnosis: visit['diagnosis'] as String?,
       vitals: (json['vitals'] as List)
           .map((v) => VisitVitals.fromJson(v as Map<String, dynamic>))
           .toList(),

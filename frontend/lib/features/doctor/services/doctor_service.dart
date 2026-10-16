@@ -8,7 +8,9 @@ class DoctorService {
   Future<List<DoctorQueueItem>> getQueue() async {
     final result = await _api.get('/doctor/queue');
     final List queueJson = result['queue'] as List;
-    return queueJson.map((j) => DoctorQueueItem.fromJson(j as Map<String, dynamic>)).toList();
+    return queueJson
+        .map((j) => DoctorQueueItem.fromJson(j as Map<String, dynamic>))
+        .toList();
   }
 
   Future<VisitDetailModel> getVisitDetail(String visitId) async {
@@ -16,8 +18,23 @@ class DoctorService {
     return VisitDetailModel.fromJson(result as Map<String, dynamic>);
   }
 
-  Future<void> createLabOrder({required String visitId, required String testName}) async {
-    await _api.post('/doctor/lab-orders', {'visit_id': visitId, 'test_name': testName});
+  Future<void> createLabOrder({
+    required String visitId,
+    required String testName,
+  }) async {
+    await _api.post('/doctor/lab-orders', {
+      'visit_id': visitId,
+      'test_name': testName,
+    });
+  }
+
+  Future<void> saveDiagnosis({
+    required String visitId,
+    required String diagnosis,
+  }) async {
+    await _api.patch('/doctor/visits/$visitId/diagnosis', {
+      'diagnosis': diagnosis,
+    });
   }
 
   Future<void> createPrescription({

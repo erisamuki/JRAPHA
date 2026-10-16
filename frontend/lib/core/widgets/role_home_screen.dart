@@ -5,7 +5,7 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../theme/theme_toggle_button.dart';
 
 /// Temporary landing screen for roles that don't have a real dashboard
-/// yet (reception, nurse, doctor, laboratory, pharmacy). Admin now
+/// yet (nurse, doctor, laboratory). Admin now
 /// bypasses this entirely and goes straight to AdminDashboardScreen -
 /// see main.dart's _AuthGate.
 class RoleHomeScreen extends StatelessWidget {
@@ -53,6 +53,8 @@ class RoleHomeScreen extends StatelessWidget {
         return 'Admin';
       case 'reception':
         return 'Reception';
+      case 'cashier':
+        return 'Cashier';
       case 'nurse':
         return 'Nurse';
       case 'doctor':

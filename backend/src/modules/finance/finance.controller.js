@@ -56,8 +56,11 @@ async function getBilling(req, res) {
     if (billing.rows.length === 0) {
       return res.status(404).json({ error: 'Billing record not found' });
     }
-    const items = await db.query('SELECT * FROM billing_items WHERE billing_id = $1', [id]);
-    return res.json({ billing: billing.rows[0], items: items.rows });
+    const [items, payments] = await Promise.all([
+      db.query('SELECT * FROM billing_items WHERE billing_id = $1 ORDER BY id', [id]),
+      db.query('SELECT * FROM billing_payments WHERE billing_id = $1 ORDER BY created_at DESC', [id]),
+    ]);
+    return res.json({ billing: billing.rows[0], items: items.rows, payments: payments.rows });
   } catch (err) {
     console.error('getBilling error:', err);
     return res.status(500).json({ error: 'Failed to fetch billing' });
@@ -68,39 +71,63 @@ async function getBilling(req, res) {
 // Records a payment against a billing record (full or partial)
 async function recordPayment(req, res) {
   const { id } = req.params;
-  const { amount_ugx, payment_method } = req.body;
+  const { amount_ugx, payment_method, reference } = req.body;
+  const allowedMethods = ['cash', 'mtn_momo', 'airtel_money', 'bank_card', 'insurance', 'other'];
+  const amount = Number(amount_ugx);
 
-  if (!amount_ugx || !payment_method) {
-    return res.status(400).json({ error: 'amount_ugx and payment_method are required' });
+  if (!Number.isFinite(amount) || amount <= 0 || Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-8) {
+    return res.status(400).json({ error: 'amount_ugx must be a positive amount with at most two decimal places' });
+  }
+  if (!allowedMethods.includes(payment_method)) {
+    return res.status(400).json({ error: `payment_method must be one of: ${allowedMethods.join(', ')}` });
+  }
+  if (reference != null && (typeof reference !== 'string' || reference.trim().length > 100)) {
+    return res.status(400).json({ error: 'reference must be a string of at most 100 characters' });
   }
 
+  const client = await db.pool.connect();
   try {
-    const billingResult = await db.query('SELECT * FROM billing WHERE id = $1', [id]);
+    await client.query('BEGIN');
+    const billingResult = await client.query('SELECT * FROM billing WHERE id = $1 FOR UPDATE', [id]);
     if (billingResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Billing record not found' });
     }
     const billing = billingResult.rows[0];
+    const amountPaid = Number(billing.amount_paid_ugx);
+    const totalAmount = Number(billing.total_amount_ugx);
+    const balanceDue = Math.round((totalAmount - amountPaid) * 100) / 100;
 
-    const newAmountPaid = Number(billing.amount_paid_ugx) + Number(amount_ugx);
-    let newStatus = 'partially_paid';
-    if (newAmountPaid >= Number(billing.total_amount_ugx)) {
-      newStatus = 'paid';
+    if (amount > balanceDue) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Payment exceeds the outstanding balance', balance_due_ugx: balanceDue });
     }
 
-    const updated = await db.query(
+    const newAmountPaid = Math.round((amountPaid + amount) * 100) / 100;
+    const newStatus = newAmountPaid >= totalAmount ? 'paid' : 'partially_paid';
+    await client.query(
+      `INSERT INTO billing_payments (billing_id, amount_ugx, payment_method, reference, processed_by)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, amount, payment_method, reference?.trim() || null, req.user.id]
+    );
+    const updated = await client.query(
       `UPDATE billing SET amount_paid_ugx = $1, payment_status = $2,
-              payment_method = $3, processed_by = $4
+              payment_method = $3, processed_by = $4, updated_at = now()
        WHERE id = $5 RETURNING *`,
       [newAmountPaid, newStatus, payment_method, req.user.id, id]
     );
+    await client.query('COMMIT');
 
     const io = req.app.get('io');
-    io.emit('payment_recorded', updated.rows[0]);
+    if (io) io.emit('payment_recorded', updated.rows[0]);
 
     return res.json({ billing: updated.rows[0] });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('recordPayment error:', err);
     return res.status(500).json({ error: 'Failed to record payment' });
+  } finally {
+    client.release();
   }
 }
 
@@ -109,7 +136,8 @@ async function recordPayment(req, res) {
 async function getOutstandingBalances(req, res) {
   try {
     const result = await db.query(
-      `SELECT b.*, p.full_name, p.patient_number
+      `SELECT b.*, (b.total_amount_ugx - b.amount_paid_ugx) AS balance_due_ugx,
+              p.full_name, p.patient_number, v.visit_type
        FROM billing b
        JOIN visits v ON v.id = b.visit_id
        JOIN patients p ON p.id = v.patient_id
