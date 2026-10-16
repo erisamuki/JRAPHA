@@ -4,7 +4,7 @@ class UserModel {
   final String id;
   final String fullName;
   final String email;
-  final String role; // admin, reception, nurse, doctor, laboratory, pharmacy
+  final String role; // admin, reception, cashier, nurse, doctor, laboratory, pharmacy
   final String status; // pending, approved, rejected, suspended
 
   UserModel({

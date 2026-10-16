@@ -83,6 +83,8 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
         return 'Admin';
       case 'reception':
         return 'Reception';
+      case 'cashier':
+        return 'Cashier';
       case 'nurse':
         return 'Nurse';
       case 'doctor':

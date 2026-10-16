@@ -14,7 +14,7 @@ async function register(req, res) {
     return res.status(400).json({ error: 'full_name, email, password, and role are required' });
   }
 
-  const validRoles = ['admin', 'reception', 'nurse', 'doctor', 'laboratory', 'pharmacy'];
+  const validRoles = ['admin', 'reception', 'cashier', 'nurse', 'doctor', 'laboratory', 'pharmacy'];
   if (!validRoles.includes(role)) {
     return res.status(400).json({ error: `role must be one of: ${validRoles.join(', ')}` });
   }

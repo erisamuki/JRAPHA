@@ -6,6 +6,7 @@ import '../../../core/widgets/app_text_field.dart';
 
 const List<Map<String, String>> _roles = [
   {'value': 'reception', 'label': 'Reception'},
+  {'value': 'cashier', 'label': 'Cashier'},
   {'value': 'nurse', 'label': 'Nurse'},
   {'value': 'doctor', 'label': 'Doctor'},
   {'value': 'laboratory', 'label': 'Laboratory'},

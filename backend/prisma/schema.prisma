@@ -292,6 +292,7 @@ enum prescription_status {
 enum user_role {
   admin
   reception
+  cashier
   nurse
   doctor
   laboratory
